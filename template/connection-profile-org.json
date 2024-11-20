@@ -1,0 +1,49 @@
+{
+  "name": "${NETWORK_NAME}-${ORG_NAME}",
+  "description": "Connection profile for Hyperledger Explorer",
+  "version": "1.0.0",
+  "client": {
+    "organization": "${ORG_NAME}",
+    "tlsEnable": true,
+    "enableAuthentication": true,
+    "adminCredential": {
+      "id": "${ADMIN_USERNAME}",
+      "password": "${ADMIN_PASSWORD}"
+    },
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "organizations": {
+    "${ORG_NAME}": {
+      "mspid": "${ORG_MSPNAME}",
+      "adminPrivateKey": {
+        "path": "/tmp/crypto/peerOrganizations/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp/keystore/priv-key.pem"
+      },
+      "peers": ["${PEER_ORG_DOMAIN}"],
+      "signedCert": {
+        "path": "/tmp/crypto/peerOrganizations/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp/signcerts/Admin@${ORG_DOMAIN}-cert.pem"
+      }
+    }
+  },
+  "peers": {
+    "${PEER_ORG_DOMAIN}": {
+      "url": "grpcs://${PEER_ORG_CORE_ADDRESS}",
+      "tlsCACerts": {
+        "path": "/tmp/crypto/peerOrganizations/${ORG_DOMAIN}/msp/tlscacerts/tlsca.${ORG_DOMAIN}-cert.pem"
+      }
+    }
+  },
+  "channels": {
+    "${CHANNEL_NAME}": {
+      "peers": {
+        "${PEER_ORG_DOMAIN}": {}
+      }
+    }
+  }
+}

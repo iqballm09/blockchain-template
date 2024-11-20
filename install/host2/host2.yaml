@@ -1,8 +1,3 @@
-# Copyright IBM Corp. All Rights Reserved.
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-
 version: "2"
 
 networks:
@@ -10,36 +5,52 @@ networks:
     external: true
 
 volumes:
-  orderer2.org1Name.example.com:
-  peer1.org1Name.example.com:
-  ca-org1Name:
-  fabric-api:
-  pgdata:
-  walletstore:
+  orderer2.org2Name.example.com:
+  peer0.org2Name.example.com:
+  ca-org2Name:
+  fabric-api-org2Name:
+  db.explorer.org2Name:
+  explorer.org2Name.example.com:
 
 services:
-  orderer2.org1Name.example.com:
+  orderer2.org2Name.example.com:
     extends:
-      file: ../../base/peer-base.yaml
+      file: ../base.yaml
       service: orderer-base
     environment:
-      - ORDERER_GENERAL_LISTENPORT=${ORDERER2_ORG1_PORT}
-    container_name: ${ORDERER2_ORG1_DOMAIN}
+      - ORDERER_GENERAL_LISTENPORT=${ORDERER2_ORG2_PORT}
+    container_name: ${ORDERER2_ORG2_DOMAIN}
     volumes:
       - ../../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-      - ../../crypto-config/ordererOrganizations/example.com/orderers/${ORDERER2_ORG1_DOMAIN}/msp:/var/hyperledger/orderer/msp
-      - ../../crypto-config/ordererOrganizations/example.com/orderers/${ORDERER2_ORG1_DOMAIN}/tls/:/var/hyperledger/orderer/tls
-      - ${ORDERER2_ORG1_DOMAIN}:/var/hyperledger/production/orderer
+      - ../../crypto-config/ordererOrganizations/example.com/orderers/${ORDERER2_ORG2_DOMAIN}/msp:/var/hyperledger/orderer/msp
+      - ../../crypto-config/ordererOrganizations/example.com/orderers/${ORDERER2_ORG2_DOMAIN}/tls/:/var/hyperledger/orderer/tls
+      - ${ORDERER2_ORG2_DOMAIN}:/var/hyperledger/production/orderer
     ports:
-      - ${ORDERER2_ORG1_PORT}:${ORDERER2_ORG1_PORT}
+      - ${ORDERER2_ORG2_PORT}:${ORDERER2_ORG2_PORT}
     networks:
       - ${NETWORK_NAME}
 
-  peer1.org1Name.example.com:
-    container_name: ${PEER1_ORG1_DOMAIN}
+  peer0.org2Name.example.com:
+    container_name: ${PEER0_ORG2_DOMAIN}
     extends:
-      file: ../../base/docker-compose-base.yaml
-      service: ${PEER1_ORG1_DOMAIN}
+      file: ../base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=${PEER0_ORG2_DOMAIN}
+      - CORE_PEER_ADDRESS=${PEER0_ORG2_CORE_ADDRESS}
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:${PEER0_ORG2_PORT}
+      - CORE_PEER_CHAINCODEADDRESS=${PEER0_ORG2_CHAINCODE_ADDRESS}
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${PEER0_ORG2_CHAINCODE_PORT}
+      - CORE_PEER_GOSSIP_BOOTSTRAP=${PEER0_ORG1_CORE_ADDRESS}
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=${PEER0_ORG2_CORE_ADDRESS}
+      - CORE_PEER_LOCALMSPID=${ORG2_MSPNAME}
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../../crypto-config/peerOrganizations/${ORG2_DOMAIN}/peers/${PEER0_ORG2_DOMAIN}/msp:/etc/hyperledger/fabric/msp
+      - ../../crypto-config/peerOrganizations/${ORG2_DOMAIN}/peers/${PEER0_ORG2_DOMAIN}/tls:/etc/hyperledger/fabric/tls
+      - ${PEER0_ORG2_DOMAIN}:/var/hyperledger/production
+    ports:
+      - ${PEER0_ORG2_PORT}:${PEER0_ORG2_PORT}
     networks:
       - ${NETWORK_NAME}
 
@@ -52,16 +63,15 @@ services:
       - SYS_CHANNEL=${SYS_CHANNEL}
       - GOPATH=/opt/gopath
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      #- FABRIC_LOGGING_SPEC=DEBUG
       - FABRIC_LOGGING_SPEC=INFO
       - CORE_PEER_ID=cli
-      - CORE_PEER_ADDRESS=${PEER1_ORG1_CORE_ADDRESS}
-      - CORE_PEER_LOCALMSPID=${ORG1_MSPNAME}
+      - CORE_PEER_ADDRESS=${PEER0_ORG2_CORE_ADDRESS}
+      - CORE_PEER_LOCALMSPID=${ORG2_MSPNAME}
       - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${ORG1_DOMAIN}/peers/${PEER1_ORG1_DOMAIN}/tls/server.crt
-      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${ORG1_DOMAIN}/peers/${PEER1_ORG1_DOMAIN}/tls/server.key
-      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${ORG1_DOMAIN}/peers/${PEER1_ORG1_DOMAIN}/tls/ca.crt
-      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${ORG1_DOMAIN}/users/Admin@${ORG1_NAME}/msp
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${ORG2_DOMAIN}/peers/${PEER0_ORG2_DOMAIN}/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${ORG2_DOMAIN}/peers/${PEER0_ORG2_DOMAIN}/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${ORG2_DOMAIN}/peers/${PEER0_ORG2_DOMAIN}/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${ORG2_DOMAIN}/users/Admin@${ORG2_DOMAIN}/msp
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
     volumes:
@@ -71,18 +81,18 @@ services:
       - ../../scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
       - ../../channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
     depends_on:
-      - ${ORDERER2_ORG1_DOMAIN}
-      - ${PEER1_ORG1_DOMAIN}
+      - ${ORDERER2_ORG2_DOMAIN}
+      - ${PEER0_ORG2_DOMAIN}
     networks:
       - ${NETWORK_NAME}
 
-  ca-org1Name:
+  ca-org2Name:
     image: hyperledger/fabric-ca:latest
     labels:
       service: hyperledger-fabric
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca-${ORG1_NAME}
+      - FABRIC_CA_SERVER_CA_NAME=ca-${ORG2_NAME}
       - FABRIC_CA_SERVER_TLS_ENABLED=true
       - FABRIC_CA_SERVER_PORT=${HOST2_CAPORT}
       - FABRIC_CA_SERVER_OPERATIONS_LISTENADDRESS=0.0.0.0:${HOST2_CAPORT_LISTENADDRESS}
@@ -91,24 +101,67 @@ services:
       - ${HOST2_CAPORT_LISTENADDRESS}:${HOST2_CAPORT_LISTENADDRESS}
     command: sh -c 'fabric-ca-server start -b ${HOST2_CA_ADMIN_NAME}:${HOST2_CA_ADMIN_PASSWORD} -d'
     volumes:
-      - ../../fabric-ca/${ORG1_NAME}:/etc/hyperledger/fabric-ca-server
-    container_name: ca-${ORG1_NAME}
+      - ../../fabric-ca/${ORG2_NAME}:/etc/hyperledger/fabric-ca-server
+    container_name: ca-${ORG2_NAME}
     networks:
       - ${NETWORK_NAME}
 
-  fabric-api:
+  fabric-api-org2Name:
     build: ../../fabric-api
-    container_name: fabric_api
+    container_name: fabric_api_${ORG2_NAME}
     command: sh -c "npm start"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ../../${CCPPATH_ORG1}:/${CCPPATH_ORG1}
+      - ../../${CCPPATH_ORG2}:/${CCPPATH_ORG2}
     ports:
-      - ${API_PORT}:${API_PORT}
+      - ${API_PORT2}:${API_PORT2}
     env_file:
       - ../../.env
     depends_on:
-      - ca-${ORG1_NAME}
+      - ca-${ORG2_NAME}
       - cli
+    networks:
+      - ${NETWORK_NAME}
+
+  db.explorer.org2Name:
+    image: hyperledger/explorer-db:${HYPERLEDGER_EXPLORER_VERSION}
+    container_name: db.explorer.${ORG2_NAME}
+    environment:
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+    healthcheck:
+      test: "pg_isready -h ${HOST2_EXPLORER_DB} -p ${HOST2_EXPLORER_DB_PORT} -q -U postgres"
+      interval: 5s
+      timeout: 10s
+      retries: 7
+    volumes:
+      - /var/lib/postgresql/data
+    networks:
+      - ${NETWORK_NAME}
+
+  explorer.org2Name.example.com:
+    image: hyperledger/explorer:${HYPERLEDGER_EXPLORER_VERSION}
+    restart: on-failure:8
+    container_name: explorer.${ORG2_NAME}.example.com
+    environment:
+      - DATABASE_HOST=db.explorer.${ORG2_NAME}
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWD=password
+      - LOG_LEVEL_APP=debug
+      - LOG_LEVEL_DB=debug
+      - LOG_LEVEL_CONSOLE=info
+      - LOG_CONSOLE_STDOUT=true
+      - DISCOVERY_AS_LOCALHOST=false
+    volumes:
+      - ../../explorer/${ORG2_NAME}/config-global.json:/opt/explorer/app/platform/fabric/config.json
+      - ../../explorer/${ORG2_NAME}:/opt/explorer/app/platform/fabric/connection-profile
+      - ../../crypto-config:/tmp/crypto
+    ports:
+      - "${HOST2_EXPLORER_PORT}:8080"
+    depends_on:
+      db.explorer.org2Name:
+        condition: service_healthy
     networks:
       - ${NETWORK_NAME}

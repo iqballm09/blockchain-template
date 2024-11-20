@@ -5,35 +5,42 @@
 
 version: "2"
 
-networks:
-  fabric-network:
-    external: true
-
 volumes:
   orderer.example.com:
   orderer1.org1Name.example.com:
   peer0.org1Name.example.com:
   ca-org1Name:
-  fabric-api:
-  pgdata:
-  walletstore:
+  fabric-api-org1Name:
+  db.explorer.org1Name:
+  explorer.org1Name.example.com:
+
+networks:
+  fabric-network:
+    external: true
 
 services:
   orderer.example.com:
-    extends:
-      file: ../../base/docker-compose-base.yaml
-      service: orderer.example.com
     container_name: orderer.example.com
+    extends:
+      file: ../base.yaml
+      service: orderer-base
+    volumes:
+      - ../../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ../../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
+      - ../../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/:/var/hyperledger/orderer/tls
+      - orderer.example.com:/var/hyperledger/production/orderer
+    ports:
+      - ${ORDERER_MAIN_PORT}:${ORDERER_MAIN_PORT}
     networks:
       - ${NETWORK_NAME}
 
   orderer1.org1Name.example.com:
+    container_name: ${ORDERER1_ORG1_DOMAIN}
     extends:
-      file: ../../base/peer-base.yaml
+      file: ../base.yaml
       service: orderer-base
     environment:
       - ORDERER_GENERAL_LISTENPORT=${ORDERER1_ORG1_PORT}
-    container_name: ${ORDERER1_ORG1_DOMAIN}
     volumes:
       - ../../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
       - ../../crypto-config/ordererOrganizations/example.com/orderers/${ORDERER1_ORG1_DOMAIN}/msp:/var/hyperledger/orderer/msp
@@ -47,8 +54,24 @@ services:
   peer0.org1Name.example.com:
     container_name: ${PEER0_ORG1_DOMAIN}
     extends:
-      file: ../../base/docker-compose-base.yaml
-      service: ${PEER0_ORG1_DOMAIN}
+      file: ../base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=${PEER0_ORG1_DOMAIN}
+      - CORE_PEER_ADDRESS=${PEER0_ORG1_CORE_ADDRESS}
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:${PEER0_ORG1_PORT}
+      - CORE_PEER_CHAINCODEADDRESS=${PEER0_ORG1_CHAINCODE_ADDRESS}
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${PEER0_ORG1_CHAINCODE_PORT}
+      - CORE_PEER_GOSSIP_BOOTSTRAP=${PEER0_ORG2_CORE_ADDRESS}
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=${PEER0_ORG1_CORE_ADDRESS}
+      - CORE_PEER_LOCALMSPID=${ORG1_MSPNAME}
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../../crypto-config/peerOrganizations/${ORG1_DOMAIN}/peers/${PEER0_ORG1_DOMAIN}/msp:/etc/hyperledger/fabric/msp
+      - ../../crypto-config/peerOrganizations/${ORG1_DOMAIN}/peers/${PEER0_ORG1_DOMAIN}/tls:/etc/hyperledger/fabric/tls
+      - ${PEER0_ORG1_DOMAIN}:/var/hyperledger/production
+    ports:
+      - ${PEER0_ORG1_PORT}:${PEER0_ORG1_PORT}
     networks:
       - ${NETWORK_NAME}
 
@@ -61,7 +84,6 @@ services:
       - SYS_CHANNEL=${SYS_CHANNEL}
       - GOPATH=/opt/gopath
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      #- FABRIC_LOGGING_SPEC=DEBUG
       - FABRIC_LOGGING_SPEC=INFO
       - CORE_PEER_ID=cli
       - CORE_PEER_ADDRESS=${PEER0_ORG1_CORE_ADDRESS}
@@ -106,19 +128,62 @@ services:
     networks:
       - ${NETWORK_NAME}
 
-  fabric-api:
+  fabric-api-org1Name:
     build: ../../fabric-api
-    container_name: fabric_api
+    container_name: fabric_api_${ORG1_NAME}
     command: sh -c "npm start"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../../${CCPPATH_ORG1}:/${CCPPATH_ORG1}
     ports:
-      - ${API_PORT}:${API_PORT}
+      - ${API_PORT1}:${API_PORT1}
     env_file:
       - ../../.env
     depends_on:
       - ca-${ORG1_NAME}
       - cli
+    networks:
+      - ${NETWORK_NAME}
+
+  db.explorer.org1Name:
+    image: hyperledger/explorer-db:${HYPERLEDGER_EXPLORER_VERSION}
+    container_name: db.explorer.${ORG1_NAME}
+    environment:
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+    healthcheck:
+      test: "pg_isready -h ${HOST1_EXPLORER_DB} -p ${HOST1_EXPLORER_DB_PORT} -q -U postgres"
+      interval: 5s
+      timeout: 10s
+      retries: 7
+    volumes:
+      - /var/lib/postgresql/data
+    networks:
+      - ${NETWORK_NAME}
+
+  explorer.org1Name.example.com:
+    image: hyperledger/explorer:${HYPERLEDGER_EXPLORER_VERSION}
+    restart: on-failure:8
+    container_name: explorer.${ORG1_NAME}.example.com
+    environment:
+      - DATABASE_HOST=db.explorer.${ORG1_NAME}
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWD=password
+      - LOG_LEVEL_APP=debug
+      - LOG_LEVEL_DB=debug
+      - LOG_LEVEL_CONSOLE=info
+      - LOG_CONSOLE_STDOUT=true
+      - DISCOVERY_AS_LOCALHOST=false
+    volumes:
+      - ../../explorer/${ORG1_NAME}/config-global.json:/opt/explorer/app/platform/fabric/config.json
+      - ../../explorer/${ORG1_NAME}:/opt/explorer/app/platform/fabric/connection-profile
+      - ../../crypto-config:/tmp/crypto
+    ports:
+      - "${HOST1_EXPLORER_PORT}:8080"
+    depends_on:
+      db.explorer.org1Name:
+        condition: service_healthy
     networks:
       - ${NETWORK_NAME}

@@ -11,19 +11,12 @@ function getTimestamp(timestamp) {
   return date.toISOString();
 }
 
-const parseData = (data, schema) => {
-  const parse = ajv.compileParser(schema);
-  const json = parse(data);
-  if (json === undefined) {
-    return { status: false, data: undefined, log: parse };
-  } else {
-    return { status: true, data: json, log: undefined };
-  }
+const validateData = (json, schema) => {
+  const validate = ajv.compile(schema);
+
+  // Validate the data
+  const status = validate(json);
+  return { status, validate };
 };
 
-const serializeData = (data, schema) => {
-  const serialize = ajv.compileSerializer(schema);
-  return serialize(data);
-};
-
-module.exports = { parseData, getTimestamp, serializeData };
+module.exports = { getTimestamp, validateData };

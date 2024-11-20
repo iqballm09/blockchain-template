@@ -1,9 +1,0 @@
-{
-  "network-configs": {
-    "insw-network": {
-      "name": "Lembaga Nasional Single Window (LNSW)",
-      "profile": "./connection-profile/insw-network.json"
-    }
-  },
-  "license": "Apache-2.0"
-}

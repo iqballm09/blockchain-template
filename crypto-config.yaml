@@ -13,13 +13,9 @@ OrdererOrgs:
         SANS:
           - orderer1.org1Name.example.com
           - localhost
-      - Hostname: orderer2.org1Name
+      - Hostname: orderer2.org2Name
         SANS:
-          - orderer2.org1Name.example.com
-          - localhost
-      - Hostname: orderer3.org2Name
-        SANS:
-          - orderer3.org2Name.example.com
+          - orderer2.org2Name.example.com
           - localhost
 
 # Peer Definition
@@ -29,17 +25,13 @@ PeerOrgs:
     Domain: org1Name.example.com
     EnableNodeOUs: true
     Template:
-      Count: 2 # How many peer will be generated
+      Count: 1 # How many peer will be generated
     Users:
       Count: 1 # The number of user accounts _in addition_ to Admin
     Specs:
       - Hostname: peer0
         SANS:
           - peer0.org1Name.example.com
-          - localhost
-      - Hostname: peer1
-        SANS:
-          - peer1.org1Name.example.com
           - localhost
 
   - Name: org2Name
