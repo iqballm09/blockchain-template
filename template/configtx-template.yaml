@@ -135,14 +135,10 @@ Orderer: &OrdererDefaults
         Port: ${ORDERER1_ORG1_PORT}
         ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/${ORDERER1_ORG1_DOMAIN}/tls/server.crt
         ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/${ORDERER1_ORG1_DOMAIN}/tls/server.crt
-      - Host: ${ORDERER2_ORG1_DOMAIN}
-        Port: ${ORDERER2_ORG1_PORT}
-        ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/${ORDERER2_ORG1_DOMAIN}/tls/server.crt
-        ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/${ORDERER2_ORG1_DOMAIN}/tls/server.crt
-      - Host: ${ORDERER3_ORG2_DOMAIN}
-        Port: ${ORDERER3_ORG2_PORT}
-        ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/${ORDERER3_ORG2_DOMAIN}/tls/server.crt
-        ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/${ORDERER3_ORG2_DOMAIN}/tls/server.crt
+      - Host: ${ORDERER2_ORG2_DOMAIN}
+        Port: ${ORDERER2_ORG2_PORT}
+        ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/${ORDERER2_ORG2_DOMAIN}/tls/server.crt
+        ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/${ORDERER2_ORG2_DOMAIN}/tls/server.crt
 
 Profiles:
   OrdererGenesis:

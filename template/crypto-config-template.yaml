@@ -13,13 +13,9 @@ OrdererOrgs:
         SANS:
           - ${ORDERER1_ORG1_DOMAIN}
           - ${PEER0_ORG1_HOST_IPADDRESS}
-      - Hostname: ${ORDERER2_ORG1_NAME}
+      - Hostname: ${ORDERER2_ORG2_NAME}
         SANS:
-          - ${ORDERER2_ORG1_DOMAIN}
-          - ${PEER1_ORG1_HOST_IPADDRESS}
-      - Hostname: ${ORDERER3_ORG2_NAME}
-        SANS:
-          - ${ORDERER3_ORG2_DOMAIN}
+          - ${ORDERER2_ORG2_DOMAIN}
           - ${PEER0_ORG2_HOST_IPADDRESS}
 
 # Peer Definition
@@ -29,7 +25,7 @@ PeerOrgs:
     Domain: ${ORG1_DOMAIN}
     EnableNodeOUs: true
     Template:
-      Count: 2 # How many peer will be generated
+      Count: 1 # How many peer will be generated
     Users:
       Count: 1 # The number of user accounts _in addition_ to Admin
     Specs:
@@ -37,10 +33,6 @@ PeerOrgs:
         SANS:
           - ${PEER0_ORG1_DOMAIN}
           - ${PEER0_ORG1_HOST_IPADDRESS}
-      - Hostname: peer1
-        SANS:
-          - ${PEER1_ORG1_DOMAIN}
-          - ${PEER1_ORG1_HOST_IPADDRESS}
 
   - Name: ${ORG2_NAME}
     Domain: ${ORG2_DOMAIN}
