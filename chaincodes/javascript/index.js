@@ -1,5 +1,7 @@
 const { Contract } = require("fabric-contract-api");
 const crypto = require("crypto");
+const { parseData } = require("./util");
+const { userSchema } = require("./dto/model");
 
 class KVContract extends Contract {
   constructor() {
@@ -10,19 +12,34 @@ class KVContract extends Contract {
     // function that will be invoked on chaincode instantiation
   }
 
-  async put(ctx, key, value) {
-    const parseData = JSON.parse(data);
-    // validate input data
-    const isValid = validateUserData(parseData.data);
-    if (!isValid) {
+  async put(ctx, input) {
+    // parse input data
+    const parsedData = parseData(input, userSchema);
+    if (!parsedData.status) {
       return {
         status: 400,
-        data: parseData.data,
-        message: "Failed to add transaction. Invalid Input Data",
+        message: isValid.log.message + " " + isValid.log.position,
       };
     }
-    await ctx.stub.putState(key, Buffer.from(value));
-    return { success: "OK" };
+
+    // generate date
+    parsedData.data.timestamp = getTimestamp(ctx.stub.getTxTimestamp());
+
+    // serialize data
+    const stringData = serializeData(parsedData.data);
+
+    // generate hash
+    const key = crypto.createHash("sha256").update(stringData).digest("hex");
+
+    // create block
+    await ctx.stub.putState(key, Buffer.from(stringData));
+
+    return {
+      status: 201,
+      message: "data has been added",
+      hash: key,
+      timestamp: parsedData.data.timestamp,
+    };
   }
 
   async get(ctx, key) {
