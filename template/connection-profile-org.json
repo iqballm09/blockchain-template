@@ -23,7 +23,7 @@
     "${ORG_NAME}": {
       "mspid": "${ORG_MSPNAME}",
       "adminPrivateKey": {
-        "path": "/tmp/crypto/peerOrganizations/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp/keystore/priv-key.pem"
+        "path": "/tmp/crypto/peerOrganizations/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp/keystore/priv_sk"
       },
       "peers": ["${PEER_ORG_DOMAIN}"],
       "signedCert": {

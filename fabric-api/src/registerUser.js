@@ -27,7 +27,6 @@ const mspOrg2 = process.env.ORG2_MSPNAME;
 const caOrg1Domain = process.env.CA_ORG1_DOMAIN;
 const caOrg2Domain = process.env.CA_ORG2_DOMAIN;
 const peer0Org1Affl = process.env.PEER0_ORG1_CA_AFFILIATION;
-const peer1Org1Affl = process.env.PEER1_ORG1_CA_AFFILIATION;
 const peer0Org2Affl = process.env.PEER0_ORG2_CA_AFFILIATION;
 
 export async function registerUserOrg1(userId, tokenAdmin) {
