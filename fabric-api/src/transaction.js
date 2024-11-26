@@ -13,6 +13,7 @@ const org1Domain = process.env.ORG1_DOMAIN;
 const org2Domain = process.env.ORG2_DOMAIN;
 const orderer1Address = process.env.ORDERER1_ORG1_ADDRESS;
 const orderer2Address = process.env.ORDERER2_ORG1_ADDRESS;
+const smartContract = process.env.SMART_CONTRACT_NAME;
 
 // Modify generateInvokeCommand based on host location
 const generateInvokeCommand = (method, parsedData) => {
@@ -20,7 +21,7 @@ const generateInvokeCommand = (method, parsedData) => {
     --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C ${channelName} -n ${chaincodeName} 
     --peerAddresses ${peer0Org1Address} --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${org1Domain}/peers/${peer0Org1Domain}/tls/ca.crt 
     --peerAddresses ${peer0Org2Address} --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/${org2Domain}/peers/${peer0Org2Domain}/tls/ca.crt 
-    -c '{\"Args\": [\"KVContract:${method}\", \"${parsedData}\"]}'`;
+    -c '{\"Args\": [\"${smartContract}:${method}\", \"${parsedData}\"]}'`;
   return invokeCommand;
 };
 
@@ -31,11 +32,11 @@ export async function addTransaction(data) {
 }
 
 export async function queryAllTransactions() {
-  const command = `docker exec cli peer chaincode query -n ${chaincodeName} -C ${channelName} -c '{"Args": ["KVContract:queryAllOrders", ""]}'`;
+  const command = `docker exec cli peer chaincode query -n ${chaincodeName} -C ${channelName} -c '{"Args": ["${smartContract}:queryAllOrders", ""]}'`;
   return await execPromisify(command);
 }
 
 export async function queryTransaction(hash) {
-  const command = `docker exec cli peer chaincode query -n ${chaincodeName} -C ${channelName} -c '{"Args": ["KVContract:queryOrder", \"${hash}\"]}'`;
+  const command = `docker exec cli peer chaincode query -n ${chaincodeName} -C ${channelName} -c '{"Args": ["${smartContract}:queryOrder", \"${hash}\"]}'`;
   return await execPromisify(command);
 }
